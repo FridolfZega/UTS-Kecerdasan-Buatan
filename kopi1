@@ -1,0 +1,116 @@
+class CoffeeExpertSystem:
+    def __init__(self):
+        self.rules = []
+        self.facts = {}
+
+    def add_rule(self, condition, result):
+        """Menambahkan aturan ke sistem."""
+        self.rules.append((condition, result))
+
+    def infer(self):
+        """Melakukan inferensi menggunakan forward chaining."""
+        for condition, result in self.rules:
+            if condition(self.facts):
+                return result
+        return "Maaf, tidak ada rekomendasi yang cocok."
+
+    def ask_question(self, question, options=None):
+        """Menanyakan input kepada pengguna dengan pilihan jawaban opsional."""
+        print("\n" + question)
+        if options:
+            for idx, option in enumerate(options, 1):
+                print(f"{idx}) {option}")
+            while True:
+                choice = input("Pilih (1/2/3/...): ").strip()
+                if choice.isdigit() and 1 <= int(choice) <= len(options):
+                    return options[int(choice) - 1]
+                else:
+                    print("❌ Masukkan angka yang valid.")
+        else:
+            return input("Jawaban: ").strip().lower()
+
+    def run(self):
+        """Menjalankan sistem forward chaining untuk rekomendasi kopi."""
+
+        # 1. Suhu Kopi
+        self.facts["suhu"] = self.ask_question("Mau kopi panas atau dingin?", ["Panas", "Dingin"])
+
+        # 2. Seberapa kuat rasa kopi?
+        self.facts["rasa_kuat"] = self.ask_question("Seberapa kuat rasa kopi yang diinginkan?",
+                                                    ["Sangat kuat", "Medium", "Ringan"])
+
+        # 3. Apakah ingin kopi manis?
+        self.facts["manis"] = self.ask_question("Mau kopi yang manis?", ["Ya", "Tidak"])
+
+        if self.facts["manis"] == "Tidak":
+            self.facts["pakai_susu"] = self.ask_question("Mau pakai susu?", ["Ya", "Tidak"])
+        else:
+            self.facts["tingkat_manis"] = self.ask_question("Seberapa manis yang diinginkan?",
+                                                            ["Sedikit manis", "Manis sedang", "Sangat manis"])
+            self.facts["karakter_manis"] = self.ask_question("Pilih karakteristik manis:",
+                                                            ["Manis alami (gula aren, madu)",
+                                                             "Manis creamy (susu kental manis, butterscotch)",
+                                                             "Manis dengan tambahan sirup"])
+
+            if self.facts["karakter_manis"] == "Manis dengan tambahan sirup":
+                self.facts["karakter_sirup"] = self.ask_question("Bagaimana karakteristik sirup yang diinginkan?",
+                                                                ["Lembut", "Manis klasik", "Sedikit gurih",
+                                                                 "Kaya rasa", "Aroma khas", "Perpaduan manis dan sedikit pahit"])
+
+        # ✅ Tambahkan aturan berdasarkan fakta yang SUDAH dikumpulkan
+        suhu = self.facts.get("suhu", "Panas")
+
+        self.add_rule(lambda f: f.get("manis") == "Tidak" and f.get("pakai_susu") == "Tidak",
+                      "Americano" if suhu == "Panas" else "Iced Americano")
+
+        self.add_rule(lambda f: f.get("manis") == "Tidak" and f.get("pakai_susu") == "Ya",
+                      "Coffee Latte" if suhu == "Panas" else "Iced Coffee Latte")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis alami (gula aren, madu)",
+                      "Aren Coffee" if suhu == "Panas" else "Iced Aren Coffee")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis creamy (susu kental manis, butterscotch)",
+                      "Butterscotch Latte" if suhu == "Panas" else "Iced Butterscotch Latte")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis dengan tambahan sirup" and f.get("karakter_sirup") == "Lembut",
+                      "Vanilla Coffee" if suhu == "Panas" else "Iced Vanilla Coffee")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis dengan tambahan sirup" and f.get("karakter_sirup") == "Manis klasik",
+                      "Caramel Coffee" if suhu == "Panas" else "Iced Caramel Coffee")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis dengan tambahan sirup" and f.get("karakter_sirup") == "Sedikit gurih",
+                      "Salted Caramel Coffee" if suhu == "Panas" else "Iced Salted Caramel Coffee")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis dengan tambahan sirup" and f.get("karakter_sirup") == "Kaya rasa",
+                      "Hazelnut Coffee" if suhu == "Panas" else "Iced Hazelnut Coffee")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis dengan tambahan sirup" and f.get("karakter_sirup") == "Aroma khas",
+                      "Butterscotch Latte" if suhu == "Panas" else "Iced Butterscotch Latte")
+
+        self.add_rule(lambda f: f.get("karakter_manis") == "Manis dengan tambahan sirup" and f.get("karakter_sirup") == "Perpaduan manis dan sedikit pahit",
+                      "Mocha Coffee" if suhu == "Panas" else "Iced Mocha Coffee")
+
+        # Jalankan inferensi
+        rekomendasi = self.infer()
+
+        # Penyajian
+        waktu_maksimal = "15-30 menit" if "Iced" in rekomendasi else "5-10 menit"
+        alasan_sajian = (
+            "agar tetap segar dan tidak terlalu encer akibat es yang mencair"
+            if "Iced" in rekomendasi
+            else "agar rasa kopi tidak berubah menjadi terlalu pahit."
+        )
+
+        # 🎨 Output yang Lebih Menarik
+        print("\n" + "="*50)
+        print("☕✨  R E K O M E N D A S I   K O P I   A N D A  ✨☕")
+        print("="*50)
+        print(f"\n✅ Kopi yang cocok untuk Anda: \033[1m{rekomendasi}\033[0m")
+        print(f"🕒 Disarankan diminum dalam: {waktu_maksimal}")
+        print(f"💡 Tips penyajian: {alasan_sajian}")
+        print("\nTerima kasih telah menggunakan sistem pakar kami! Nikmati kopi Anda! ☕🍃")
+        print("="*50)
+
+# Jalankan sistem pakar
+expert_system = CoffeeExpertSystem()
+expert_system.run()

@@ -1,0 +1,78 @@
+def tanya(pertanyaan, pilihan):
+    print(f"\n{pertanyaan}")
+    for i, opsi in enumerate(pilihan, 1):
+        print(f"{i}. {opsi}")
+    while True:
+        try:
+            pilihan_user = int(input("Pilih nomor jawaban: "))
+            if 1 <= pilihan_user <= len(pilihan):
+                return pilihan[pilihan_user - 1]
+            else:
+                print("❌ Pilihan tidak valid, coba lagi.")
+        except ValueError:
+            print("❌ Masukkan angka yang valid.")
+
+def forward_chaining_min2(fakta, rules):
+    rekomendasi = []
+    for jenis_kopi, syarat in rules.items():
+        cocok_total = sum(1 for kondisi in syarat if kondisi in fakta)
+        if cocok_total >= 2:
+            rekomendasi.append(jenis_kopi)
+    return rekomendasi
+
+def rekomendasi_kopi():
+    print("\n☕ Selamat datang di sistem rekomendasi kopi berbasis Forward Chaining ☕")
+
+    fakta = []
+
+    rasa = tanya("Bagaimana rasa dasar kopi yang Anda sukai?", ["Pahit", "Manis"])
+    fakta.append(rasa.lower())
+
+    manis = tanya("Apakah kopi Anda manis atau tidak manis?", ["Manis", "Tidak Manis"])
+    fakta.append(manis.lower())
+
+    susu = tanya("Pilih jenis susu jika Anda ingin (atau pilih 'Tidak')", ["Susu", "Susu kental manis", "Susu fresh milk", "Tidak"])
+    if susu != "Tidak":
+        fakta.append(susu.lower())
+
+    pemanis = tanya("Pilih jenis pemanis jika Anda ingin (atau pilih 'Tanpa pemanis')", ["Gula sirup", "Gula aren", "Tanpa pemanis"])
+    if pemanis != "Tanpa pemanis":
+        fakta.append(pemanis.lower())
+
+    tambahan = tanya("Tambahan rasa lain yang Anda sukai?", ["Tidak ada", "Coklat", "Matcha"])
+    if tambahan != "Tidak ada":
+        fakta.append(tambahan.lower())
+
+    # Aturan jenis kopi
+    rules = {
+        "Kopi Hitam": ["pahit", "tidak manis", "gula sirup"],
+        "Kopi Hitam Aren": ["pahit", "manis", "gula aren"],
+        "Kopi Susu Gula Aren": ["manis", "susu", "gula aren"],
+        "Kopi Susu Modern": ["pahit", "susu fresh milk", "gula sirup"],
+        "Kopi Susu Jadoel": ["manis", "susu kental manis"],
+        "Kopi Coklat": ["manis", "coklat", "pahit", "susu kental manis"],
+        "Matchapresso": ["manis", "matcha", "pahit", "gula sirup"]
+    }
+
+    # Deskripsi jenis kopi
+    deskripsi = {
+        "Kopi Hitam": "Kopi murni tanpa campuran manis, cocok bagi pecinta rasa pahit alami.",
+        "Kopi Hitam Aren": "Kopi pahit yang diberi sentuhan manis alami dari gula aren.",
+        "Kopi Susu Gula Aren": "Kopi manis dengan campuran susu dan gula aren, favorit banyak orang.",
+        "Kopi Susu Modern": "Kopi dengan susu fresh milk dan gula sirup, rasa ringan dan kekinian.",
+        "Kopi Susu Jadoel": "Kopi manis jadul dengan susu kental manis, cocok untuk nostalgia.",
+        "Kopi Coklat": "Campuran kopi pahit, coklat, dan susu kental manis, rasa manis dan creamy.",
+        "Matchapresso": "Kombinasi matcha dan dengan gula sirup, rasa unik dan kekinian."
+    }
+
+    hasil = forward_chaining_min2(fakta, rules)
+
+    print("\n🎯 Rekomendasi minuman kopi untuk Anda:")
+    if hasil:
+        for kopi in hasil:
+            print(f"\n☕ {kopi}\n📝 {deskripsi.get(kopi, 'Deskripsi belum tersedia.')}")
+    else:
+        print("❌ Tidak ditemukan kopi yang cocok dengan preferensi Anda.")
+
+# Jalankan aplikasi
+rekomendasi_kopi()
